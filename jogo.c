@@ -15,6 +15,58 @@
 #define but_A 5
 #define but_B 6
 
+void inverter(uint8_t *ssd){
+    for(uint16_t i = 0; i < 1024; i++){
+        ssd[i] = ~(ssd[i]);
+    }
+}
+
+uint8_t tempo(){
+    static float temp = 0.0;
+    static float ult = 0.0;
+
+    float atual = ((float)(clock()) / CLOCKS_PER_SEC);
+    float decor = atual - ult;
+
+    temp += decor;
+    ult = atual;
+
+    if(temp > 1.0){
+        temp -= (int)temp;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void inicial(uint8_t *ssd, struct render_area* frame_area){
+
+    uint8_t pointer = 0;
+    ssd1306_draw_string(ssd, 16, 22, "JOGO DE DAVI");
+    ssd1306_draw_string(ssd, 24, 38, "A iniciar");
+    ssd1306_set_pixel(ssd, 34, 38, true);
+    sleep_ms(20);
+    inverter(ssd);
+    sleep_ms(20);
+    render_on_display(ssd, frame_area);
+
+    while(true){
+    ssd1306_draw_line(ssd, 16, 32, 19, 32, pointer);
+    ssd1306_draw_line(ssd, 16, 33, 20, 33, pointer);
+    ssd1306_draw_line(ssd, 16, 34, 21, 34, pointer);
+    ssd1306_draw_line(ssd, 16, 35, 20, 35, pointer);
+    ssd1306_draw_line(ssd, 16, 36, 19, 36, pointer);
+    if(tempo()){
+        pointer = ~pointer;
+        sleep_ms(20);
+        render_on_display(ssd, frame_area);
+    }
+        if(!gpio_get(but_A)){
+            break;
+        }
+    }
+}
+
 void draw_nave(uint8_t *ssd, uint8_t x, bool set){ //função que desenha a nave
 ssd1306_draw_line(ssd, x, 60, x, 48, set);
 ssd1306_draw_line(ssd, x -1, 59 , x -1 , 50, set);  
@@ -113,30 +165,28 @@ int main(){
     // zera o display inteiro
     uint8_t ssd[ssd1306_buffer_length];
     memset(ssd, 0, ssd1306_buffer_length);
+
+    inicial(ssd, &frame_area);
+
+    memset(ssd, 0, ssd1306_buffer_length);
     render_on_display(ssd, &frame_area);
+    sleep_ms(100);
 
     while(true){
 
-        while((!gpio_get(but_A)) && (x_nave != 10)){
-
+        if ((!gpio_get(but_A)) && (x_nave != 10)){
             draw_nave(ssd, x_nave, false);
             x_nave = x_nave -1;
-            draw_nave(ssd, x_nave, true);
-            atualizar_balas(ssd, x_nave);
-            render_on_display(ssd, &frame_area);
-        } 
-        while ((!gpio_get(but_B)) && (x_nave != 115)){
-
-            draw_nave(ssd, x_nave, false);
-            x_nave = x_nave + 1;
-            draw_nave(ssd, x_nave, true);
-            atualizar_balas(ssd, x_nave);
-            render_on_display(ssd, &frame_area);
         }
 
+        if ((!gpio_get(but_B)) && (x_nave != 116)){
+            draw_nave(ssd, x_nave, false);
+            x_nave = x_nave + 1;
+        }
+        
         draw_nave(ssd, x_nave, true);
-        atualizar_balas(ssd, x_nave);
         render_on_display(ssd, &frame_area);
+        atualizar_balas(ssd, x_nave);
     }
 
 }
