@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico CACHE STRING "Board type")
+set(PICO_BOARD pico_w CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -37,7 +37,7 @@ pico_sdk_init()
 
 add_executable(jogo jogo.c
         inc/ssd1306_i2c.c
-        src/desenho.c)
+        )
 
 pico_set_program_name(jogo "jogo")
 pico_set_program_version(jogo "0.1")
